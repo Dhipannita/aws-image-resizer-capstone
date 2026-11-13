@@ -1,0 +1,44 @@
+{
+  "Comment": "Resize an image and check whether processing succeeded.",
+  "QueryLanguage": "JSONPath",
+  "StartAt": "ResizeImage",
+  "States": {
+    "ResizeImage": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:ca-central-1:956646644848:function:CapstoneResizeImage",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Next": "CheckResizeResult",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "ProcessingFailed"
+        }
+      ]
+    },
+    "CheckResizeResult": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.success",
+          "BooleanEquals": true,
+          "Next": "ProcessingSucceeded"
+        }
+      ],
+      "Default": "ProcessingFailed"
+    },
+    "ProcessingSucceeded": {
+      "Type": "Succeed"
+    },
+    "ProcessingFailed": {
+      "Type": "Fail",
+      "Error": "ImageProcessingFailed",
+      "Cause": "The image could not be resized. Check the Lambda logs."
+    }
+  }
+}
